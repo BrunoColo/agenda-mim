@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1F5F4A"/>
-  <g fill="#fff">
-    <ellipse cx="196" cy="352" rx="62" ry="46" transform="rotate(-20 196 352)"/>
-    <rect x="232" y="128" width="28" height="226" rx="6"/>
-    <path d="M232 128h28c10 52 96 62 96 148-24-44-62-52-96-56h-28z"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="26" fill="#FEBD59"/><g transform="translate(10 26) scale(.833)"><rect x="2" y="2" width="116" height="76" rx="9" fill="#2E2A33"/><rect x="11" y="11" width="98" height="11" fill="#3FA796"/><rect x="11" y="22" width="98" height="9" fill="#F4E4BC"/><rect x="11" y="31" width="98" height="9" fill="#F2A541"/><rect x="11" y="40" width="98" height="10" fill="#E2493A"/><rect x="28" y="19" width="64" height="24" rx="12" fill="#2E2A33"/><circle cx="42" cy="31" r="5.500" fill="#fff"/><circle cx="78" cy="31" r="5.500" fill="#fff"/><rect x="54" y="26" width="12" height="10" rx="1.500" fill="#fff"/></g></svg>

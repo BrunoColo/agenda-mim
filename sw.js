@@ -1,6 +1,6 @@
 // Deja la app abriendo sin conexión. Con conexión siempre trae la última versión.
-const CACHE = 'mim-agenda-v1';
-const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
+const CACHE = 'mim-agenda-v2';
+const SHELL = ['./', 'index.html', 'app.css', 'app.js', 'demo.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

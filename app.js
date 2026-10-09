@@ -50,68 +50,10 @@ let yoId = leer(KEY_YO);
 function leer(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function escribir(k, v) { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento: sigue en memoria */ } }
 function cargar() {
-  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.v === 1) return d; } catch { /* datos rotos o sin acceso */ }
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.v === 1 && !(d.demo && d.semillaV !== SEMILLA_V)) return d; } catch { /* datos rotos o sin acceso */ }
   return semilla();
 }
 function guardar() { escribir(KEY, JSON.stringify(db)); render(); }
-
-// Notas inventadas para los datos de ejemplo
-const NOTAS = {
-  Piano: [['Escala de Do mayor a dos manos. Empezamos el Himno a la alegría.', 'Mano derecha del Himno, 5 minutos por día.'], ['Lectura en clave de Fa. Repasamos la mano izquierda sola.', ''], ['Para Elisa, primera parte con manos juntas.', 'Compases 9 a 16, lento.']],
-  Guitarra: [['Postura y primeras notas en cuerdas al aire.', ''], ['Acordes de Sol, Do y Re. Le cuesta el cambio a Do.', 'Cambio de Sol a Do, despacio.'], ['Rasgueo abajo, abajo, arriba con una canción nueva.', 'La canción entera, cantando encima.']],
-  Canto: [['Respiración y vocalización. Trabajamos el estribillo.', ''], ['Afinación con el piano. Eligió canción para la muestra.', 'Escuchar la versión original y marcar las respiraciones.']],
-  'Batería': [['Ritmo básico de rock con bombo en 1 y 3. Metrónomo a 70.', ''], ['Redoble simple y doble. Un fill de un compás.', 'Ritmo de rock a 80 con metrónomo.']],
-  Ensamble: [['Elegimos repertorio para la muestra. Cada uno practica su parte.', ''], ['Armamos el tema entero. Falta ajustar el corte del final.', 'Repasar el final, cada uno su parte.']],
-  'Iniciación musical': [['Juego de ecos rítmicos y canción con movimiento.', ''], ['Exploramos sonidos graves y agudos con el xilofón.', '']],
-};
-
-function semilla() {
-  const hoy = hoyIso();
-  const desde = addDays(hoy, -21);
-  const P = (id, nombre, instrumentos, color) => ({ id, nombre, instrumentos, color });
-  const d = { v: 1, demo: true, sembrada: hoy, profes: [P('juan', 'Juan', 'Piano, guitarra', COLORES[0]), P('melina', 'Melina', 'Piano, canto, iniciación', COLORES[1]), P('facundo', 'Facundo', 'Guitarra, batería', COLORES[2])], alumnos: [], clases: [], exc: {}, reg: {} };
-  const al = (nombre, edad, tutor) => { const a = { id: uid(), nombre, edad, tutor: tutor || '', tel: '', notas: '', creditos: 0 }; d.alumnos.push(a); return a.id; };
-  const A = {
-    martina: al('Martina R.', 9, 'Laura'), santiago: al('Santiago P.', 11, 'Andrés'), carolina: al('Carolina V.', 34), lucia: al('Lucía F.', 8, 'Paula'),
-    tomas: al('Tomás A.', 12, 'Verónica'), emilia: al('Emilia C.', 7, 'Diego'), bruno: al('Bruno M.', 10, 'Silvia'), joaquin: al('Joaquín D.', 12, 'Martín'),
-    olivia: al('Olivia T.', 6, 'Carla'), mateo: al('Mateo G.', 9, 'Rosana'), valentina: al('Valentina S.', 11, 'Gabriela'), agustin: al('Agustín L.', 8, 'Pablo'),
-    sofia: al('Sofía B.', 10, 'Mariana'), benjamin: al('Benjamín O.', 7, 'Lucas'), renata: al('Renata K.', 13, 'Inés'), clara: al('Clara N.', 9, 'Fernando'),
-    mia: al('Mía E.', 4, 'Julia'), felipe: al('Felipe H.', 5, 'Sergio'), alma: al('Alma Z.', 4, 'Noelia'), lautaro: al('Lautaro I.', 12, 'Cecilia'),
-    simon: al('Simón U.', 10, 'Raúl'), ignacio: al('Ignacio Q.', 41),
-  };
-  const C = (profeId, dia, inicio, dur, instrumento, alumnos, titulo) => d.clases.push({ id: uid(), profeId, dia, inicio, dur, instrumento, alumnoIds: alumnos.map((k) => A[k]), titulo: titulo || '', desde, demo: true });
-  C('juan', 1, '16:00', 45, 'Piano', ['martina']); C('juan', 1, '17:00', 45, 'Guitarra', ['santiago']); C('juan', 1, '18:00', 60, 'Piano', ['carolina']);
-  C('juan', 2, '16:30', 45, 'Piano', ['lucia']); C('juan', 2, '17:30', 45, 'Guitarra', ['tomas']);
-  C('juan', 3, '16:00', 45, 'Piano', ['emilia']); C('juan', 3, '17:00', 45, 'Piano', ['bruno']); C('juan', 3, '18:30', 45, 'Guitarra', ['joaquin']);
-  C('juan', 4, '16:30', 45, 'Piano', ['olivia']); C('juan', 4, '17:30', 45, 'Guitarra', ['mateo']);
-  C('juan', 5, '16:00', 45, 'Guitarra', ['valentina']); C('juan', 5, '17:00', 45, 'Piano', ['agustin']);
-  C('juan', 5, '18:00', 90, 'Ensamble', ['santiago', 'tomas', 'joaquin', 'valentina'], 'Ensamble de los viernes');
-  C('juan', 6, '10:00', 45, 'Piano', ['sofia']); C('juan', 6, '11:00', 45, 'Guitarra', ['benjamin']);
-  C('melina', 1, '17:00', 45, 'Canto', ['renata']); C('melina', 2, '17:00', 45, 'Iniciación musical', ['mia', 'felipe', 'alma'], 'Iniciación musical');
-  C('melina', 4, '17:00', 45, 'Piano', ['clara']);
-  C('facundo', 1, '18:00', 45, 'Batería', ['lautaro']); C('facundo', 3, '17:00', 45, 'Batería', ['simon']); C('facundo', 5, '17:00', 45, 'Guitarra', ['ignacio']);
-
-  let n = 0;
-  for (let i = 21; i >= 1; i--) {
-    const f = addDays(hoy, -i);
-    const wd = parse(f).getDay();
-    for (const c of d.clases) {
-      if (c.dia !== wd) continue;
-      const pool = NOTAS[c.instrumento];
-      const [nota, practicar] = pool[Math.min(pool.length - 1, 2 - Math.floor((i - 1) / 7))] || pool[0];
-      const falto = c.alumnoIds.length === 1 && ++n % 11 === 0;
-      const key = `${c.id}|${f}`;
-      d.reg[key] = { key, claseId: c.id, fecha: f, inicio: c.inicio, alumnoIds: [...c.alumnoIds], instrumento: c.instrumento, profeId: c.profeId, asist: Object.fromEntries(c.alumnoIds.map((id) => [id, falto ? 'falto' : 'vino'])), nota: falto ? '' : nota, practicar: falto ? '' : practicar, ts: 0 };
-    }
-  }
-  // Una cancelación próxima, para que se vea cómo queda
-  const ct = d.clases.find((c) => c.alumnoIds[0] === A.tomas && c.alumnoIds.length === 1);
-  for (let i = 1; i <= 7; i++) {
-    const f = addDays(hoy, i);
-    if (parse(f).getDay() === ct.dia) { d.exc[`${ct.id}|${f}`] = { tipo: 'cancelada', recupera: true }; d.alumnos.find((a) => a.id === A.tomas).creditos = 1; break; }
-  }
-  return d;
-}
 
 db = cargar();
 
@@ -243,7 +185,10 @@ addEventListener('popstate', (e) => {
   while (capas.length > depth && !capas[capas.length - 1].fijo) quitarTop();
   render();
 });
-addEventListener('keydown', (e) => { if (e.key === 'Escape' && capas.length) cerrar(); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && capas.length) cerrar();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+});
 
 let toastT;
 function toast(msg) {
@@ -254,7 +199,8 @@ function toast(msg) {
 // ---------- Piezas comunes ----------
 const avatar = (p, lg) => `<span class="avatar${lg ? ' avatar--lg' : ''}" style="background:${h(p?.color || '#4E5B55')}">${h((p?.nombre || '?').charAt(0).toUpperCase())}</span>`;
 const PILL = { anotada: ['pill--ok', 'Anotada'], pendiente: ['pill--warn', 'Falta anotar'], cancelada: ['pill--off', 'Cancelada'], encurso: ['pill--ok', 'En curso'] };
-const pill = (est) => (PILL[est] ? `<span class="pill ${PILL[est][0]}">${PILL[est][1]}</span>` : '');
+const sinNota = (key) => { const r = db.reg[key]; return !!r && !r.nota && !r.practicar; };
+const pill = (est, key) => (PILL[est] ? `<span class="pill ${PILL[est][0]}">${est === 'anotada' && sinNota(key) ? 'Dada' : PILL[est][1]}</span>` : '');
 
 function notaPrevia(o) {
   const r = ultimaNota(o.c, o.fecha + o.inicio);
@@ -272,7 +218,7 @@ function filaClase(o, opt = {}) {
     <span class="row__time">${h(o.inicio)}</span>
     ${opt.conProfe ? `<span class="dot" style="background:${h(p?.color || '#4E5B55')}"></span>` : ''}
     <span class="row__body"><span class="row__name">${h(tituloClase(o.c))}</span><span class="row__sub">${h(sub)}</span></span>
-    ${pill(est)}</button>`;
+    ${pill(est, o.key)}</button>`;
 }
 
 // ---------- Vista: Hoy ----------
@@ -282,25 +228,22 @@ function vistaHoy() {
   const sigue = mias.find((o) => ['encurso', 'futura'].includes(estado(o)));
   const pend = pendientes(yoId);
   const resto = mias.filter((o) => o !== sigue && estado(o) !== 'pendiente');
+  const hm = (d) => hhmm(d.getHours() * 60 + d.getMinutes());
 
   let hero;
   if (sigue) {
     const enCurso = estado(sigue) === 'encurso', { ini, fin } = horas(sigue);
     const falta = Math.max(1, Math.round((ini - n) / 60000));
-    const cuando = enCurso ? `termina ${hhmm(fin.getHours() * 60 + fin.getMinutes())}` : falta < 60 ? `en ${falta} min` : `en ${Math.floor(falta / 60)} h${falta % 60 ? ' ' + (falta % 60) : ''}`;
-    const uno = sigue.c.alumnoIds.length === 1;
-    hero = `<section class="card">
-      <div class="hero__top"><span class="hero__tag">${enCurso ? 'En curso' : 'Ahora sigue'}</span><span class="pill">${h(cuando)}</span></div>
-      <div class="hero__main"><div><div class="hero__name">${h(tituloClase(sigue.c))}</div>
-        <div class="hero__sub">${h(sigue.c.instrumento)} · ${h(sigue.c.alumnoIds.length > 1 ? `${sigue.c.alumnoIds.length} alumnos · ` : '')}${h(durTxt(sigue.c.dur))}</div></div>
-        <div class="hero__time">${h(sigue.inicio)}</div></div>
-      ${notaPrevia(sigue)}
-      <div class="btns">
-        ${enCurso ? `<button class="btn btn--primary" data-act="anotar" data-key="${h(sigue.key)}">Anotar clase</button>`
-          : uno ? `<button class="btn btn--primary" data-act="ficha" data-id="${h(sigue.c.alumnoIds[0])}">Ver historial</button>`
-            : `<button class="btn btn--primary" data-act="clase" data-key="${h(sigue.key)}">Ver clase</button>`}
-        <button class="btn" data-act="clase" data-key="${h(sigue.key)}">Mover o cancelar</button>
-      </div></section>`;
+    const cuando = enCurso ? `hasta las ${hm(fin)}` : falta < 60 ? `en ${falta} min` : `en ${Math.floor(falta / 60)} h${falta % 60 ? ' ' + (falta % 60) : ''}`;
+    const r = ultimaNota(sigue.c, sigue.fecha + sigue.inicio);
+    // La tarjeta muestra lo justo; al tocarla se abre la clase con todo el detalle
+    hero = `<section class="card hero" data-act="clase" data-key="${h(sigue.key)}" role="button" tabindex="0" aria-label="Ver la clase de ${h(tituloClase(sigue.c))}">
+      <div class="hero__top"><span class="hero__tag">${enCurso ? 'Ahora' : 'Sigue'}</span><span class="pill">${h(cuando)}</span></div>
+      <div class="hero__main"><div style="min-width:0"><div class="hero__name">${h(tituloClase(sigue.c))}</div>
+        <div class="hero__sub">${h(sigue.c.instrumento)} · ${h(sigue.inicio)} a ${h(hm(fin))}</div></div>${ico('chevR', 22)}</div>
+      ${r ? `<p class="hero__nota"><b>La vez pasada:</b> ${h(r.nota || r.practicar)}</p>` : ''}
+      ${enCurso ? `<button class="btn btn--primary" data-act="anotar" data-key="${h(sigue.key)}">Anotar clase</button>` : ''}
+    </section>`;
   } else {
     let prox = null;
     for (let i = 1; i <= 7 && !prox; i++) prox = ocurrencias(addDays(hoy, i)).find((o) => o.c.profeId === yoId && !o.cancelada);
@@ -313,21 +256,40 @@ function vistaHoy() {
     </section>`;
   }
 
+  const p0 = pend[0];
   return `
     <header class="head">
       <div><div class="head__date">${h(fechaLarga(hoy))}</div><h1>Tu día${yo ? `, ${h(yo.nombre)}` : ''}</h1></div>
       <button class="chip-yo" data-act="cuenta" aria-label="Cambiar de profe y opciones">${avatar(yo)}${h(yo?.nombre || 'Elegir')}</button>
     </header>
-    ${db.demo ? `<div class="banner"><span>Estás viendo <b>datos de ejemplo</b>.</span><button class="link" data-act="cuenta">Opciones</button></div>` : ''}
     ${hero}
-    ${pend.slice(0, 3).map((o) => `<button class="pend" data-act="anotar" data-key="${h(o.key)}">
+    ${p0 ? `<button class="pend" data-act="${pend.length === 1 ? 'anotar' : 'pendientes'}" data-key="${h(p0.key)}">
       <span class="pend__ico">${ico('lapiz')}</span>
-      <span class="pend__txt"><b>Falta anotar: ${h(tituloClase(o.c))}</b><span>${h(o.c.instrumento)} · ${h(fechaRel(o.fecha))} ${h(o.inicio)}</span></span>
-      ${ico('chevR', 18)}</button>`).join('')}
-    ${pend.length > 3 ? `<p class="muted" style="font-size:14px;text-align:center">Y ${pend.length - 3} clases más sin anotar. Las ves en Semana.</p>` : ''}
+      <span class="pend__txt">${pend.length === 1
+        ? `<b>Falta anotar: ${h(tituloClase(p0.c))}</b><span>${h(p0.c.instrumento)} · ${h(fechaRel(p0.fecha))} ${h(p0.inicio)}</span>`
+        : `<b>${pend.length} clases sin anotar</b><span>Tocá para anotarlas o dejarlas sin nota</span>`}</span>
+      ${ico('chevR', 18)}</button>` : ''}
     ${resto.length ? `<section style="display:flex;flex-direction:column;gap:8px">
       <h2 class="label" style="margin-top:4px">${sigue ? 'Resto del día' : 'Las de hoy'}</h2>
       <div class="card card--flat">${resto.map((o) => filaClase(o)).join('')}</div></section>` : ''}`;
+}
+
+// ---------- Hoja: clases sin anotar ----------
+function hojaPendientes() {
+  const pend = pendientes(yoId);
+  if (!pend.length) return null;
+  return `<h2 class="sheet__title">Clases sin anotar</h2>
+    <p class="muted" style="font-size:14.5px">Anotalas ahora, o dejalas sin nota si no hace falta.</p>
+    <div>${pend.map((o) => `<div class="row" style="align-items:center">
+      <span class="row__body"><span class="row__name">${h(tituloClase(o.c))}</span><span class="row__sub">${h(o.c.instrumento)} · ${h(fechaRel(o.fecha))} ${h(o.inicio)}</span></span>
+      <button class="btn btn--sm" data-act="sin-nota" data-key="${h(o.key)}">Sin nota</button>
+      <button class="btn btn--sm btn--primary" data-act="anotar" data-key="${h(o.key)}">Anotar</button></div>`).join('')}</div>
+    ${pend.length > 1 ? `<button class="btn btn--ghost" data-act="sin-nota-todas" style="flex:none">Dejar todas sin nota</button>` : ''}`;
+}
+function marcarDada(key) {
+  const o = ocDe(key);
+  if (!o || db.reg[key]) return;
+  db.reg[key] = { key, claseId: o.c.id, fecha: o.fecha, inicio: o.inicio, alumnoIds: [...o.c.alumnoIds], instrumento: o.c.instrumento, profeId: o.c.profeId, asist: Object.fromEntries(o.c.alumnoIds.map((id) => [id, 'vino'])), nota: '', practicar: '', ts: Date.now() };
 }
 
 // ---------- Vista: Semana ----------
@@ -401,7 +363,7 @@ function hojaClase(key) {
       <h2 class="sheet__title">${h(tituloClase(o.c))}</h2>
       <div><div style="font-weight:700">${h(fechaLarga(o.fecha))} · ${h(o.inicio)} a ${h(hhmm(fin.getHours() * 60 + fin.getMinutes()))}</div>
         <div class="muted" style="font-size:14.5px;font-weight:600">${h(o.c.instrumento)} con ${h(p?.nombre || '')}${o.c.fecha ? ' · clase suelta' : ` · todos los ${h(DIAS[o.c.dia].replace(/o$/, 'os'))}`}</div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">${pill(est)}${o.movida ? `<span class="pill pill--off">Movida del ${h(fechaCorta(o.origen))}</span>` : ''}${o.cancelada && o.exc.recupera ? '<span class="pill pill--warn">Se recupera</span>' : ''}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${pill(est, key)}${o.movida ? `<span class="pill pill--off">Movida del ${h(fechaCorta(o.origen))}</span>` : ''}${o.cancelada && o.exc.recupera ? '<span class="pill pill--warn">Se recupera</span>' : ''}</div>
       ${o.c.alumnoIds.length > 1 ? `<div class="muted" style="font-size:14.5px">${h(alumnosDe(o.c).map((a) => a.nombre).join(', '))}</div>` : ''}
       ${r ? `<div class="card" style="gap:6px;padding:14px 16px"><div class="lastnote__when">Nota de esta clase</div>
           <div class="lastnote__txt">${r.nota ? h(r.nota) : '<span class="muted">Sin nota.</span>'}</div>
@@ -409,7 +371,8 @@ function hojaClase(key) {
         : `<div class="card" style="padding:0 16px 14px;gap:0">${notaPrevia(o).replace('class="lastnote"', 'class="lastnote" style="border-top:0"')}</div>`}
       <div class="stack">
         ${o.cancelada ? `<button class="btn btn--primary" data-act="descancelar" data-key="${h(key)}">Deshacer la cancelación</button>` : `
-          ${est !== 'futura' ? `<button class="btn btn--primary" data-act="anotar" data-key="${h(key)}">${r ? 'Editar la nota' : 'Anotar clase'}</button>` : ''}
+          ${est !== 'futura' ? `<button class="btn btn--primary" data-act="anotar" data-key="${h(key)}">${r ? (sinNota(key) ? 'Agregar una nota' : 'Editar la nota') : 'Anotar clase'}</button>` : ''}
+          ${est === 'pendiente' ? `<button class="btn" data-act="sin-nota" data-key="${h(key)}">Dejarla sin nota</button>` : ''}
           ${est === 'futura' || est === 'encurso' ? `<button class="btn" data-act="recordar" data-key="${h(key)}">${ico('chat', 18)} Recordar por WhatsApp</button>` : ''}
           ${!r ? `<button class="btn" data-act="mover" data-key="${h(key)}">Mover solo este día</button>
           <button class="btn btn--danger" data-act="cancelar" data-key="${h(key)}">Cancelar solo este día</button>` : ''}
@@ -448,8 +411,12 @@ function paginaAnotar(key) {
         <input class="field" id="an-practicar" name="practicar" placeholder="Ej.: cambio de Sol a Do, lento" value="${h(r?.practicar || '')}" autocomplete="off"></div>
       ${uno ? `<label class="check"><input type="checkbox" name="wa">Mandarle el resumen a la familia por WhatsApp</label>` : ''}
     </div>
-    <div class="page__foot"><button class="btn btn--dark" type="submit">Guardar clase</button></div>
+    <div class="page__foot"><button class="btn btn--dark" type="submit" id="an-guardar">${r?.nota || r?.practicar ? 'Guardar clase' : 'Guardar sin nota'}</button></div>
   </form>`;
+}
+function rotuloAnotar() {
+  const b = $('#an-guardar');
+  if (b) b.textContent = $('#an-nota').value.trim() || $('#an-practicar').value.trim() ? 'Guardar clase' : 'Guardar sin nota';
 }
 
 let rec = null;
@@ -470,7 +437,7 @@ function dictar(btn) {
     let inter = '';
     for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) fin += t; else inter += t; }
     const dicho = (fin + inter).trim();
-    ta.value = [base, dicho ? cap(dicho) : ''].filter(Boolean).join(' ');
+    ta.value = [base, dicho ? cap(dicho) : ''].filter(Boolean).join(' '); rotuloAnotar();
   };
   rec.onerror = (e) => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Falta darle permiso al micrófono.'); else if (e.error !== 'aborted' && e.error !== 'no-speech') toast('No se pudo dictar. Probá escribirlo.'); };
   rec.onend = () => { rec = null; marcar(false); };
@@ -494,7 +461,7 @@ function guardarAnotar(form) {
     const txt = [`Hola! Les cuento la clase de ${o.c.instrumento.toLowerCase()} de ${a.nombre} de ${fechaRel(o.fecha)}:`, reg.nota || (asist[a.id] === 'vino' ? '' : 'No pudo venir.'), reg.practicar ? `Para practicar en casa: ${reg.practicar}` : '', `${profe(o.c.profeId)?.nombre || ''}, Música Integral Malvín`].filter(Boolean).join('\n');
     window.open(waLink(a.tel, txt), '_blank', 'noopener');
   }
-  guardar(); cerrar(); toast('Clase anotada');
+  guardar(); cerrar(); toast(reg.nota || reg.practicar ? 'Clase anotada' : 'Guardada sin nota');
 }
 
 // ---------- Hojas: mover y cancelar ----------
@@ -649,11 +616,11 @@ function hojaCuenta() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   return `
-    <h2 class="sheet__title">Agenda MIM</h2>
+    <div style="display:flex;align-items:center;gap:12px"><img src="icons/icon.svg" width="40" height="40" alt="" style="border-radius:10px"><h2 class="sheet__title">Agenda MIM</h2></div>
     <section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">¿Quién está usando este teléfono?</h3>
       <div class="card card--flat">${db.profes.map((p) => `<div class="row" style="padding:8px 0">
         <button data-act="soy" data-id="${h(p.id)}" style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;min-height:44px;text-align:left">
-          ${avatar(p, true)}<span class="row__body"><span class="row__name">${h(p.nombre)}</span><span class="row__sub">${h(p.instrumentos || 'Profe')}</span></span>
+          ${avatar(p, true)}<span class="row__body"><span class="row__name">${h(p.nombre)}</span></span>
           ${p.id === yoId ? '<span class="pill pill--ok">Vos</span>' : ''}</button>
         <button class="icon-btn" style="background:#fff" data-act="editar-profe" data-id="${h(p.id)}" aria-label="Editar a ${h(p.nombre)}">${ico('lapiz', 18)}</button></div>`).join('')}</div>
       <button class="btn btn--ghost" data-act="nuevo-profe" style="flex:none">${ico('mas', 18)} Agregar profe</button></section>
@@ -661,14 +628,15 @@ function hojaCuenta() {
       ${instalar ? `<button class="btn btn--primary" data-act="instalar" style="flex:none">Instalar en este teléfono</button>`
         : `<p class="muted" style="font-size:14.5px">${ios ? 'En Safari: tocá Compartir y después “Agregar a inicio”.' : 'En Chrome: abrí el menú de los tres puntos y tocá “Agregar a pantalla principal”.'}</p>`}</section>`}
     <section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">Datos</h3>
-      <p class="muted" style="font-size:14.5px">Todo se guarda solo en este teléfono. Bajá un respaldo cada tanto.</p>
+      <p class="muted" style="font-size:14.5px">${db.demo ? 'Ahora estás viendo alumnos y clases de ejemplo, inventados. ' : ''}Todo se guarda solo en este teléfono. Bajá un respaldo cada tanto.</p>
       <div class="btns"><button class="btn" data-act="exportar">Bajar respaldo</button><button class="btn" data-act="importar">Cargar respaldo</button></div>
       ${db.demo ? `<button class="btn btn--primary" data-act="en-blanco" style="flex:none">Borrar el ejemplo y empezar</button>` : `<button class="btn btn--ghost" data-act="ver-demo" style="flex:none">Volver a los datos de ejemplo</button>`}</section>`;
 }
 function hojaQuien() {
-  return `<h2 class="sheet__title">¿Quién sos?</h2>
+  return `<img src="icons/icon.svg" width="56" height="56" alt="Música Integral Malvín" style="border-radius:14px">
+    <h2 class="sheet__title">¿Quién sos?</h2>
     <p class="muted" style="font-size:15px">Así te mostramos tus clases. Lo podés cambiar cuando quieras.</p>
-    <div class="stack">${db.profes.map((p) => `<button class="btn" data-act="soy" data-id="${h(p.id)}" style="justify-content:flex-start;min-height:60px">${avatar(p, true)}<span style="text-align:left"><span style="display:block">${h(p.nombre)}</span><span class="muted" style="font-size:13px;font-weight:600">${h(p.instrumentos || '')}</span></span></button>`).join('')}
+    <div class="stack">${db.profes.map((p) => `<button class="btn" data-act="soy" data-id="${h(p.id)}" style="justify-content:flex-start;min-height:60px">${avatar(p, true)}<span style="font-size:17px">${h(p.nombre)}</span></button>`).join('')}
       <button class="btn btn--ghost" data-act="nuevo-profe">${ico('mas', 18)} Soy otro profe</button></div>`;
 }
 function paginaProfe(p) {
@@ -694,6 +662,9 @@ const acts = {
     toast(`Hola, ${profe(yoId)?.nombre}`);
   },
   clase(el) { abrir('sheet', hojaClase(el.dataset.key)); },
+  pendientes() { abrir('sheet', hojaPendientes); },
+  'sin-nota'(el) { marcarDada(el.dataset.key); guardar(); toast('Guardada sin nota'); },
+  'sin-nota-todas'() { pendientes(yoId).forEach((o) => marcarDada(o.key)); guardar(); toast('Listo, no queda nada por anotar'); },
   anotar(el) {
     const html = paginaAnotar(el.dataset.key);
     if (!html) return;
@@ -844,6 +815,7 @@ document.addEventListener('submit', (e) => {
   forms[f.dataset.form]?.(f);
 });
 document.addEventListener('input', (e) => {
+  if (e.target.id === 'an-nota' || e.target.id === 'an-practicar') rotuloAnotar();
   if (e.target.id === 'alumno-q') { alumnoQ = e.target.value; $('#alumnos-lista').innerHTML = listaAlumnos(); }
   const f = e.target.closest('[data-form]');
   if (f?.dataset.ok && e.target.matches('[name="inicio"],[name="fecha"],[name="dia"],[name="dur"],[name="profeId"],[name="al"]')) {
@@ -879,8 +851,7 @@ function refrescarDemo() {
   for (let f = db.sembrada; f < hoy; f = addDays(f, 1)) {
     for (const o of ocurrencias(f)) {
       if (!o.c.demo || o.cancelada || db.reg[o.key]) continue;
-      const pool = NOTAS[o.c.instrumento] || [['', '']];
-      const [nota, practicar] = pool[parse(f).getDate() % pool.length];
+      const [nota, practicar] = notaDemo(o.c, f);
       db.reg[o.key] = { key: o.key, claseId: o.c.id, fecha: o.fecha, inicio: o.inicio, alumnoIds: [...o.c.alumnoIds], instrumento: o.c.instrumento, profeId: o.c.profeId, asist: Object.fromEntries(o.c.alumnoIds.map((id) => [id, 'vino'])), nota, practicar, ts: 0 };
     }
   }

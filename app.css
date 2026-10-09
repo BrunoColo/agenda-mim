@@ -63,6 +63,10 @@ h1, h2, h3, p { margin: 0; }
 .hero__name { font-weight: 800; font-size: 28px; line-height: 1.08; letter-spacing: -.6px; overflow-wrap: anywhere; }
 .hero__time { font-weight: 800; font-size: 28px; letter-spacing: -.6px; flex: none; }
 .hero__sub { font-size: 14.5px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+.hero { cursor: pointer; }
+.hero__main > svg { flex: none; align-self: center; color: var(--muted); }
+.hero__nota { font-size: 15px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hero__nota b { color: var(--ink); font-weight: 700; }
 .lastnote { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 5px; }
 .lastnote__when { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .lastnote__txt { font-size: 16px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
@@ -88,11 +92,11 @@ h1, h2, h3, p { margin: 0; }
 .link { background: none; border: 0; padding: 0; min-height: 44px; font-weight: 700; color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Aviso de pendiente */
-.pend { width: 100%; text-align: left; background: var(--warn-soft); border: 0; border-radius: 18px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; color: var(--ink); }
-.pend__ico { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: var(--warn-ink); display: flex; align-items: center; justify-content: center; flex: none; }
+.pend { width: 100%; text-align: left; background: var(--bg); border: 1.5px solid #EFD2BD; border-radius: 18px; padding: 13px 14px; display: flex; align-items: center; gap: 12px; color: var(--ink); }
+.pend__ico { width: 40px; height: 40px; border-radius: 50%; background: var(--warn-soft); color: var(--warn-ink); display: flex; align-items: center; justify-content: center; flex: none; }
 .pend__txt { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .pend__txt b { font-size: 15px; font-weight: 700; }
-.pend__txt span { font-size: 13.5px; color: #5A4636; font-weight: 600; }
+.pend__txt span { font-size: 13.5px; color: var(--muted); font-weight: 600; }
 
 /* Filas */
 .row { width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); padding: 12px 0; min-height: 56px; display: flex; align-items: center; gap: 12px; color: var(--ink); }
