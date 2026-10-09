@@ -1,7 +1,7 @@
 'use strict';
 
 // La escribe publicar.sh en cada publicación; se compara con version.txt para actualizarse sola
-const VERSION = '2026-10-09.2024';
+const VERSION = '2026-10-09.2026';
 
 // ---------- Utilidades ----------
 const $ = (s, el = document) => el.querySelector(s);
