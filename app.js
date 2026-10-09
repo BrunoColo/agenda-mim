@@ -21,7 +21,38 @@ const ASIST = { vino: 'Vino', falto: 'Faltó', aviso: 'Avisó antes' };
 
 // ?ahora=2026-10-09T16:35 fija la hora, para mostrar la app o probarla
 const AHORA = new URLSearchParams(location.search).get('ahora');
-const now = () => (AHORA ? new Date(AHORA) : new Date());
+// Modo prueba (solo con los datos de ejemplo): simula un momento del día con clases,
+// para poder ver "Hoy" en acción a cualquier hora. Queda guardado en el teléfono.
+const KEY_SIM = 'mim-agenda-sim';
+const SIMS = { antes: 'Antes de empezar', clase: 'En plena clase', entre: 'Entre dos clases', fin: 'Al terminar el día' };
+let sim = '', simF = '';
+try { [sim = '', simF = ''] = (localStorage.getItem(KEY_SIM) || '').split('|'); } catch { /* sin almacenamiento */ }
+let simCache = null;
+function momentoSim() {
+  const base = iso(new Date());
+  const k = `${sim}|${simF}|${yoId}|${base}|${db.clases.length}|${Object.keys(db.exc).length}`;
+  if (simCache?.k === k) return simCache.d;
+  // El día simulado es el primero, desde hoy, con varias clases mías todavía sin tocar
+  const delDia = (x) => ocurrencias(x).filter((o) => o.c.profeId === yoId && !o.cancelada);
+  const dias = Array.from({ length: 8 }, (_, i) => addDays(base, i));
+  const limpio = (x) => delDia(x).every((o) => !db.reg[o.key]);
+  // Una vez elegido el día se mantiene, aunque después anotes clases en él
+  if (!simF || simF < base || !delDia(simF).length) {
+    simF = dias.find((x) => delDia(x).length >= 3 && limpio(x)) || dias.find((x) => delDia(x).length && limpio(x)) || dias.find((x) => delDia(x).length) || base;
+    try { localStorage.setItem(KEY_SIM, `${sim}|${simF}`); } catch { /* sin almacenamiento */ }
+  }
+  const f = simF, ocs = delDia(f);
+  let d = null;
+  if (ocs.length) {
+    const m = ocs.map((o) => [mins(o.inicio), mins(o.inicio) + o.c.dur]);
+    const ult = m[m.length - 1], seg = m[Math.min(1, m.length - 1)];
+    const t = sim === 'antes' ? m[0][0] - 30 : sim === 'clase' ? seg[0] + 20 : sim === 'entre' ? ult[0] - 10 : ult[1] + 10;
+    d = parse(f); d.setMinutes(t);
+  }
+  simCache = { k: `${sim}|${simF}|${yoId}|${base}|${db.clases.length}|${Object.keys(db.exc).length}`, d };
+  return d;
+}
+const now = () => (AHORA ? new Date(AHORA) : (sim && db?.demo && yoId && momentoSim()) || new Date());
 const hoyIso = () => iso(now());
 
 const fechaLarga = (s) => { const d = parse(s); return `${cap(DIAS[d.getDay()])} ${d.getDate()} de ${MESES[d.getMonth()]}`; };
@@ -105,7 +136,9 @@ function estado(o) {
 }
 function pendientes(profeId) {
   const hoy = hoyIso(), out = [];
-  for (let i = 0; i <= 14; i++) out.push(...ocurrencias(addDays(hoy, -i)).filter((o) => o.c.profeId === profeId && estado(o) === 'pendiente').reverse());
+  // En modo prueba solo cuentan las del día simulado
+  const atras = sim && db.demo && !AHORA ? 0 : 14;
+  for (let i = 0; i <= atras; i++) out.push(...ocurrencias(addDays(hoy, -i)).filter((o) => o.c.profeId === profeId && estado(o) === 'pendiente').reverse());
   return out;
 }
 function ultimaNota(c, antes) {
@@ -262,6 +295,7 @@ function vistaHoy() {
       <div><div class="head__date">${h(fechaLarga(hoy))}</div><h1>Tu día${yo ? `, ${h(yo.nombre)}` : ''}</h1></div>
       <button class="chip-yo" data-act="cuenta" aria-label="Cambiar de profe y opciones">${avatar(yo)}${h(yo?.nombre || 'Elegir')}</button>
     </header>
+    ${sim && db.demo && !AHORA ? `<div class="banner"><span><b>Modo prueba:</b> ${h(SIMS[sim].toLowerCase())}, ${h(hm(n))}</span><button class="link" data-act="sim" data-v="">Hora real</button></div>` : ''}
     ${hero}
     ${p0 ? `<button class="pend" data-act="${pend.length === 1 ? 'anotar' : 'pendientes'}" data-key="${h(p0.key)}">
       <span class="pend__ico">${ico('lapiz')}</span>
@@ -627,6 +661,10 @@ function hojaCuenta() {
     ${standalone ? '' : `<section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">Tenerla como app</h3>
       ${instalar ? `<button class="btn btn--primary" data-act="instalar" style="flex:none">Instalar en este teléfono</button>`
         : `<p class="muted" style="font-size:14.5px">${ios ? 'En Safari: tocá Compartir y después “Agregar a inicio”.' : 'En Chrome: abrí el menú de los tres puntos y tocá “Agregar a pantalla principal”.'}</p>`}</section>`}
+    ${db.demo ? `<section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">Probar un momento del día</h3>
+      <p class="muted" style="font-size:14.5px">Para ver cómo queda Hoy a distintas horas, sin esperar. Solo con los datos de ejemplo.</p>
+      <div class="simgrid">${Object.entries(SIMS).map(([v, t]) => `<button class="btn btn--sm" data-act="sim" data-v="${v}" aria-pressed="${sim === v}">${t}</button>`).join('')}
+        <button class="btn btn--sm" data-act="sim" data-v="" aria-pressed="${!sim}" style="grid-column:1/-1">Hora real</button></div></section>` : ''}
     <section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">Datos</h3>
       <p class="muted" style="font-size:14.5px">${db.demo ? 'Ahora estás viendo alumnos y clases de ejemplo, inventados. ' : ''}Todo se guarda solo en este teléfono. Bajá un respaldo cada tanto.</p>
       <div class="btns"><button class="btn" data-act="exportar">Bajar respaldo</button><button class="btn" data-act="importar">Cargar respaldo</button></div>
@@ -663,6 +701,13 @@ const acts = {
   },
   clase(el) { abrir('sheet', hojaClase(el.dataset.key)); },
   pendientes() { abrir('sheet', hojaPendientes); },
+  sim(el) {
+    sim = el.dataset.v; if (!sim) simF = ''; // al cambiar de momento se sigue en el mismo día de prueba
+    escribir(KEY_SIM, `${sim}|${simF}`); simCache = null;
+    tab = 'hoy'; semSel = hoyIso(); $('#view').innerHTML = '';
+    if (capas.length) cerrar(); else render();
+    scrollTo(0, 0); toast(sim ? `Modo prueba: ${SIMS[sim].toLowerCase()}` : 'De vuelta a la hora real');
+  },
   'sin-nota'(el) { marcarDada(el.dataset.key); guardar(); toast('Guardada sin nota'); },
   'sin-nota-todas'() { pendientes(yoId).forEach((o) => marcarDada(o.key)); guardar(); toast('Listo, no queda nada por anotar'); },
   anotar(el) {

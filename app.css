@@ -85,6 +85,8 @@ h1, h2, h3, p { margin: 0; }
 .btn--ghost { border-color: transparent; background: var(--surface); }
 .btn--sm { min-height: 44px; flex: none; font-size: 14px; padding: 0 14px; border-radius: 13px; }
 .btn:disabled { opacity: .5; }
+.simgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.simgrid .btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .stack .btn { flex: none; }
 .icon-btn:disabled { opacity: .4; }
