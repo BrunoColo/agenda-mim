@@ -1,5 +1,8 @@
 'use strict';
 
+// La escribe publicar.sh en cada publicación; se compara con version.txt para actualizarse sola
+const VERSION = '2026-10-09.2024';
+
 // ---------- Utilidades ----------
 const $ = (s, el = document) => el.querySelector(s);
 const h = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -668,7 +671,8 @@ function hojaCuenta() {
     <section style="display:flex;flex-direction:column;gap:8px"><h3 class="label">Datos</h3>
       <p class="muted" style="font-size:14.5px">${db.demo ? 'Ahora estás viendo alumnos y clases de ejemplo, inventados. ' : ''}Todo se guarda solo en este teléfono. Bajá un respaldo cada tanto.</p>
       <div class="btns"><button class="btn" data-act="exportar">Bajar respaldo</button><button class="btn" data-act="importar">Cargar respaldo</button></div>
-      ${db.demo ? `<button class="btn btn--primary" data-act="en-blanco" style="flex:none">Borrar el ejemplo y empezar</button>` : `<button class="btn btn--ghost" data-act="ver-demo" style="flex:none">Volver a los datos de ejemplo</button>`}</section>`;
+      ${db.demo ? `<button class="btn btn--primary" data-act="en-blanco" style="flex:none">Borrar el ejemplo y empezar</button>` : `<button class="btn btn--ghost" data-act="ver-demo" style="flex:none">Volver a los datos de ejemplo</button>`}</section>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span class="muted" style="font-size:13px">Versión ${h(VERSION)}</span><button class="link" data-act="actualizar" style="font-size:14px">Buscar actualización</button></div>`;
 }
 function hojaQuien() {
   return `<img src="icons/icon.svg" width="56" height="56" alt="Música Integral Malvín" style="border-radius:14px">
@@ -701,6 +705,7 @@ const acts = {
   },
   clase(el) { abrir('sheet', hojaClase(el.dataset.key)); },
   pendientes() { abrir('sheet', hojaPendientes); },
+  actualizar() { buscarActualizacion(true); },
   sim(el) {
     sim = el.dataset.v; if (!sim) simF = ''; // al cambiar de momento se sigue en el mismo día de prueba
     escribir(KEY_SIM, `${sim}|${simF}`); simCache = null;
@@ -885,6 +890,33 @@ $('#file-import').addEventListener('change', async (e) => {
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); instalar = e; render(); });
 addEventListener('appinstalled', () => { instalar = null; render(); });
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+
+// ---------- Actualización automática ----------
+// Una app instalada casi nunca recarga la página: se retoma desde el fondo. Por eso, cada vez que
+// vuelve a estar a la vista, pregunta si hay una versión publicada más nueva y se recarga sola.
+const ARCHIVOS = ['./', 'index.html', 'app.css', 'app.js', 'demo.js', 'sw.js'];
+let buscando = false;
+async function buscarActualizacion(manual) {
+  if (buscando || !navigator.onLine) { if (manual) toast('Sin conexión, no se puede buscar.'); return; }
+  buscando = true;
+  try {
+    const nueva = (await (await fetch('version.txt', { cache: 'no-store' })).text()).trim();
+    if (!nueva || nueva === VERSION) { if (manual) toast('Ya tenés la última versión'); return; }
+    // No recargar encima de algo que se está escribiendo; se reintenta la próxima vez
+    if (capas.some((c) => typeof c.html !== 'function') && !manual) return;
+    let intento = '';
+    try { intento = sessionStorage.getItem('mim-upd') || ''; } catch { /* sin almacenamiento */ }
+    if (intento === nueva && !manual) return; // ya se intentó en esta sesión: evita recargar en bucle
+    try { sessionStorage.setItem('mim-upd', nueva); } catch { /* sin almacenamiento */ }
+    // Trae los archivos salteando lo guardado por el navegador, y recién ahí recarga
+    await Promise.all(ARCHIVOS.map((a) => fetch(a, { cache: 'reload' }).catch(() => {})));
+    (await navigator.serviceWorker?.getRegistration())?.update().catch(() => {});
+    location.reload();
+  } catch { if (manual) toast('No se pudo buscar la actualización.'); } finally { buscando = false; }
+}
+addEventListener('load', () => buscarActualizacion());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) buscarActualizacion(); });
+setInterval(() => { if (!document.hidden) buscarActualizacion(); }, 5 * 60000);
 // La cuenta regresiva y los estados cambian solos con la hora
 setInterval(() => { if (tab === 'hoy' && !document.hidden) render(); }, 30000);
 
