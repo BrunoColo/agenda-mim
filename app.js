@@ -1,7 +1,7 @@
 'use strict';
 
 // La escribe publicar.sh en cada publicación; se compara con version.txt para actualizarse sola
-const VERSION = '2026-10-09.2026';
+const VERSION = '2026-10-14.1749';
 
 // ---------- Utilidades ----------
 const $ = (s, el = document) => el.querySelector(s);
@@ -19,7 +19,11 @@ const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', '
 const DIAS_C = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'];
 const INSTRUMENTOS = ['Piano', 'Guitarra', 'Canto', 'Batería', 'Percusión', 'Saxofón', 'Ensamble', 'Iniciación musical'];
-const COLORES = ['#1F5F4A', '#2B4C7E', '#8A4B1F', '#6B3F6E', '#3D5A5B', '#7A2E3A'];
+// Colores de la marca, oscurecidos lo justo para que la inicial en blanco se lea bien
+const COLORES = ['#C9402F', '#8858A0', '#0A6B14', '#2B6F8F', '#9A5B00', '#17130F'];
+const COLORES_VIEJOS = ['#1F5F4A', '#2B4C7E', '#8A4B1F', '#6B3F6E', '#3D5A5B', '#7A2E3A'];
+const LOGO = '<svg viewBox="0 0 120 80" aria-hidden="true"><rect x="2" y="2" width="116" height="76" rx="9" fill="#2E2A33"/><rect x="11" y="11" width="98" height="11" fill="#3FA796"/><rect x="11" y="22" width="98" height="9" fill="#F4E4BC"/><rect x="11" y="31" width="98" height="9" fill="#F2A541"/><rect x="11" y="40" width="98" height="10" fill="#E2493A"/><rect x="28" y="19" width="64" height="24" rx="12" fill="#2E2A33"/><circle cx="42" cy="31" r="5.5" fill="#fff"/><circle cx="78" cy="31" r="5.5" fill="#fff"/><rect x="54" y="26" width="12" height="10" rx="1.5" fill="#fff"/><circle cx="22" cy="66" r="3" fill="#F4E4BC"/><circle cx="98" cy="66" r="3" fill="#F4E4BC"/></svg>';
+const BLOB = 'M152 38c22 20 34 52 28 82s-30 58-62 64-66-10-86-36S4 82 22 56 74 10 104 12s26 6 48 26z';
 const ASIST = { vino: 'Vino', falto: 'Faltó', aviso: 'Avisó antes' };
 
 // ?ahora=2026-10-09T16:35 fija la hora, para mostrar la app o probarla
@@ -90,6 +94,8 @@ function cargar() {
 function guardar() { escribir(KEY, JSON.stringify(db)); render(); }
 
 db = cargar();
+// Profes guardados con los colores de antes pasan a su par de la marca
+db.profes.forEach((p) => { const i = COLORES_VIEJOS.indexOf(p.color); if (i >= 0) p.color = COLORES[i]; });
 
 // ---------- Consultas ----------
 const profe = (id) => db.profes.find((p) => p.id === id);
@@ -233,7 +239,7 @@ function toast(msg) {
 }
 
 // ---------- Piezas comunes ----------
-const avatar = (p, lg) => `<span class="avatar${lg ? ' avatar--lg' : ''}" style="background:${h(p?.color || '#4E5B55')}">${h((p?.nombre || '?').charAt(0).toUpperCase())}</span>`;
+const avatar = (p, lg) => `<span class="avatar${lg ? ' avatar--lg' : ''}" style="background:${h(p?.color || '#6B6257')}">${h((p?.nombre || '?').charAt(0).toUpperCase())}</span>`;
 const PILL = { anotada: ['pill--ok', 'Anotada'], pendiente: ['pill--warn', 'Falta anotar'], cancelada: ['pill--off', 'Cancelada'], encurso: ['pill--ok', 'En curso'] };
 const sinNota = (key) => { const r = db.reg[key]; return !!r && !r.nota && !r.practicar; };
 const pill = (est, key) => (PILL[est] ? `<span class="pill ${PILL[est][0]}">${est === 'anotada' && sinNota(key) ? 'Dada' : PILL[est][1]}</span>` : '');
@@ -252,7 +258,7 @@ function filaClase(o, opt = {}) {
   const cls = est === 'cancelada' ? ' row--off' : est === 'anotada' ? ' row--done' : '';
   return `<button class="row${cls}" data-act="${est === 'pendiente' ? 'anotar' : 'clase'}" data-key="${h(o.key)}">
     <span class="row__time">${h(o.inicio)}</span>
-    ${opt.conProfe ? `<span class="dot" style="background:${h(p?.color || '#4E5B55')}"></span>` : ''}
+    ${opt.conProfe ? `<span class="dot" style="background:${h(p?.color || '#6B6257')}"></span>` : ''}
     <span class="row__body"><span class="row__name">${h(tituloClase(o.c))}</span><span class="row__sub">${h(sub)}</span></span>
     ${pill(est, o.key)}</button>`;
 }
@@ -295,8 +301,11 @@ function vistaHoy() {
   const p0 = pend[0];
   return `
     <header class="head">
-      <div><div class="head__date">${h(fechaLarga(hoy))}</div><h1>Tu día${yo ? `, ${h(yo.nombre)}` : ''}</h1></div>
+      <div class="brand">${LOGO}AGENDA MIM</div>
       <button class="chip-yo" data-act="cuenta" aria-label="Cambiar de profe y opciones">${avatar(yo)}${h(yo?.nombre || 'Elegir')}</button>
+    </header>
+    <header>
+      <div class="head__date">${h(fechaLarga(hoy))}</div><h1 class="page__title" style="font-size:30px">Tu día${yo ? `, ${h(yo.nombre)}` : ''}</h1>
     </header>
     ${sim && db.demo && !AHORA ? `<div class="banner"><span><b>Modo prueba:</b> ${h(SIMS[sim].toLowerCase())}, ${h(hm(n))}</span><button class="link" data-act="sim" data-v="">Hora real</button></div>` : ''}
     ${hero}
@@ -675,11 +684,18 @@ function hojaCuenta() {
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span class="muted" style="font-size:13px">Versión ${h(VERSION)}</span><button class="link" data-act="actualizar" style="font-size:14px">Buscar actualización</button></div>`;
 }
 function hojaQuien() {
-  return `<img src="icons/icon.svg" width="56" height="56" alt="Música Integral Malvín" style="border-radius:14px">
-    <h2 class="sheet__title">¿Quién sos?</h2>
-    <p class="muted" style="font-size:15px">Así te mostramos tus clases. Lo podés cambiar cuando quieras.</p>
-    <div class="stack">${db.profes.map((p) => `<button class="btn" data-act="soy" data-id="${h(p.id)}" style="justify-content:flex-start;min-height:60px">${avatar(p, true)}<span style="font-size:17px">${h(p.nombre)}</span></button>`).join('')}
-      <button class="btn btn--ghost" data-act="nuevo-profe">${ico('mas', 18)} Soy otro profe</button></div>`;
+  const blob = (fill, css) => `<svg class="quien__blob" viewBox="0 0 200 200" aria-hidden="true" style="${css}"><path fill="${fill}" d="${BLOB}"/></svg>`;
+  return `<div class="quien__top">
+      ${blob('#E2493A', 'right:-70px;top:-60px;width:200px;height:200px')}${blob('#8858A0', 'left:-60px;bottom:-50px;width:150px;height:150px')}
+      <span class="quien__logo">${LOGO}</span>
+      <div class="quien__name" role="img" aria-label="Música Integral Malvín">MÚSICA INTEGRAL<small>MALVÍN</small></div>
+    </div>
+    <div><h2 class="quien__title">¿Quién <span>sos?</span></h2>
+    <p class="muted" style="font-size:15px;margin-top:6px">Así te mostramos tus clases. Lo cambiás cuando quieras.</p></div>
+    <div class="stack" style="gap:12px">${db.profes.map((p, i) => `<button class="quien__row" data-act="soy" data-id="${h(p.id)}">
+        <span class="blobav"><svg viewBox="0 0 200 200" aria-hidden="true" style="transform:rotate(${i * 115}deg)"><path fill="${h(p.color || COLORES[0])}" d="${BLOB}"/></svg><span>${h((p.nombre || '?').charAt(0).toUpperCase())}</span></span>
+        <span class="quien__txt"><b>${h(p.nombre)}</b>${p.instrumentos ? `<small>${h(p.instrumentos)}</small>` : ''}</span>${ico('chevR', 20)}</button>`).join('')}
+      <button class="quien__otro" data-act="nuevo-profe">${ico('mas', 18)} Soy otro profe</button></div>`;
 }
 function paginaProfe(p) {
   const e = p || { nombre: '', instrumentos: '', color: COLORES[db.profes.length % COLORES.length] };
