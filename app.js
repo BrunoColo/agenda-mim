@@ -1,7 +1,7 @@
 'use strict';
 
 // La escribe publicar.sh en cada publicación; se compara con version.txt para actualizarse sola
-const VERSION = '2026-10-14.1749';
+const VERSION = '2026-10-14.1757';
 
 // ---------- Utilidades ----------
 const $ = (s, el = document) => el.querySelector(s);
@@ -690,12 +690,11 @@ function hojaQuien() {
       <span class="quien__logo">${LOGO}</span>
       <div class="quien__name" role="img" aria-label="Música Integral Malvín">MÚSICA INTEGRAL<small>MALVÍN</small></div>
     </div>
-    <div><h2 class="quien__title">¿Quién <span>sos?</span></h2>
+    <div><h2 class="page__title">¿Quién sos?</h2>
     <p class="muted" style="font-size:15px;margin-top:6px">Así te mostramos tus clases. Lo cambiás cuando quieras.</p></div>
-    <div class="stack" style="gap:12px">${db.profes.map((p, i) => `<button class="quien__row" data-act="soy" data-id="${h(p.id)}">
-        <span class="blobav"><svg viewBox="0 0 200 200" aria-hidden="true" style="transform:rotate(${i * 115}deg)"><path fill="${h(p.color || COLORES[0])}" d="${BLOB}"/></svg><span>${h((p.nombre || '?').charAt(0).toUpperCase())}</span></span>
-        <span class="quien__txt"><b>${h(p.nombre)}</b>${p.instrumentos ? `<small>${h(p.instrumentos)}</small>` : ''}</span>${ico('chevR', 20)}</button>`).join('')}
-      <button class="quien__otro" data-act="nuevo-profe">${ico('mas', 18)} Soy otro profe</button></div>`;
+    <div class="stack">${db.profes.map((p) => `<button class="quien__row" data-act="soy" data-id="${h(p.id)}">
+        ${avatar(p, true)}<span class="quien__txt"><b>${h(p.nombre)}</b>${p.instrumentos ? `<small>${h(p.instrumentos)}</small>` : ''}</span>${ico('chevR', 20)}</button>`).join('')}
+      <button class="btn btn--ghost" data-act="nuevo-profe">${ico('mas', 18)} Soy otro profe</button></div>`;
 }
 function paginaProfe(p) {
   const e = p || { nombre: '', instrumentos: '', color: COLORES[db.profes.length % COLORES.length] };
